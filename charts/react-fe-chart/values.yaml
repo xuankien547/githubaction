@@ -1,0 +1,20 @@
+replicaCount: 2
+
+image:
+  repository: "<AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/my-react-fe"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  hosts:
+    - host: react.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: [] # - secretName: tls-secret, hosts: [react.example.com]
