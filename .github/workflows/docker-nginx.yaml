@@ -1,0 +1,26 @@
+name: Build and Deploy Nginx Docker Image
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t nginx-docker-app .
+
+      - name: Run Docker container
+        run: |
+          docker run -d -p 80:80 nginx-docker-app
+
+      - name: Verify Nginx is running
+        run: |
+          curl -f http://localhost || exit 1
