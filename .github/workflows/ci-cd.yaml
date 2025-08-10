@@ -14,7 +14,7 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: AWS-credential
+    environment: AWS credential
 
     steps:
       - name: Checkout source
