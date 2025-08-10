@@ -2,7 +2,7 @@ name: CI/CD to EKS with Helm
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 env:
   AWS_REGION: ap-southeast-1
