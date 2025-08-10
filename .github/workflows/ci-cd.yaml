@@ -1,38 +1,50 @@
-name: ML App CI/CD to EKS
+name: CI/CD to EKS with Helm
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_REPOSITORY: llm-service
+  CLUSTER_NAME: my-eks-cluster
+  HELM_CHART_PATH: helm/llm-service
+  RELEASE_NAME: llm-service
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push Docker Image
+      - name: Build and Push Docker Image
         run: |
           IMAGE_TAG=${GITHUB_SHA::7}
-          docker build -t ${{ secrets.ECR_REPO }}:$IMAGE_TAG .
-          docker push ${{ secrets.ECR_REPO }}:$IMAGE_TAG
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Update Helm values and Deploy to EKS
+      - name: Update kubeconfig for EKS
+        run: aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+
+      - name: Deploy with Helm
         run: |
-          aws eks update-kubeconfig --name my-eks-cluster --region ap-southeast-1
-          helm upgrade --install ml-app ./helm \
-            --set image.repository=${{ secrets.ECR_REPO }} \
-            --set image.tag=${IMAGE_TAG}
+          helm upgrade --install $RELEASE_NAME $HELM_CHART_PATH \
+            --set image.repository=${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY \
+            --set image.tag=$IMAGE_TAG \
+            --namespace default \
+            --create-namespace

@@ -1,14 +1,17 @@
-# Stage 1: Build React app
-FROM node:20 AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
+FROM python:3.10-slim
 
-# Stage 2: Serve with Nginx
-FROM nginx:1.27-alpine
-COPY --from=build /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Set workdir
+WORKDIR /app
+
+# Install dependencies
+COPY app/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy code
+COPY app/ .
+
+# Expose port
+EXPOSE 8000
+
+# Start FastAPI
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
