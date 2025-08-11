@@ -44,8 +44,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade --install $RELEASE_NAME $HELM_CHART_PATH \
+          helm upgrade $RELEASE_NAME $HELM_CHART_PATH \
             --set image.repository=${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY \
             --set image.tag=$IMAGE_TAG \
-            --namespace default \
-            --create-namespace
+            --namespace default
