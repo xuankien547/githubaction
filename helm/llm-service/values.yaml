@@ -5,6 +5,9 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+nodeSelector: {}
+tolerations: []
+
 service:
   type: LoadBalancer
   port: 80
