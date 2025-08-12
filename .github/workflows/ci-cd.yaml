@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY: llm-service
-  CLUSTER_NAME: eks-insular-dev
+  CLUSTER_NAME: insular-dev
   HELM_CHART_PATH: helm/llm-service
   RELEASE_NAME: llm-service
 
